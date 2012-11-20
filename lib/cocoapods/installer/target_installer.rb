@@ -173,7 +173,7 @@ module Pod
       end
 
       def default_header_search_paths
-        flags = %w(#{inherited_flag})
+        flags = [inherited_flag]
         flags << '${PODS_HEADERS_SEARCH_PATHS}'
         flags.join(" ")
       end
