@@ -67,6 +67,7 @@ module Pod
       attr_accessor :requires_arc
 
       attr_reader :xcconfig
+      
 
       # In a workspace this is where the static library headers should be found.
       #
@@ -74,7 +75,8 @@ module Pod
         xcconfig = Xcodeproj::Config.new({
           'ALWAYS_SEARCH_USER_PATHS' => 'YES', # needed to make EmbedReader build
           'OTHER_LDFLAGS'            => default_ld_flags,
-          'HEADER_SEARCH_PATHS'      => '${PODS_HEADERS_SEARCH_PATHS}',
+          'HEADER_SEARCH_PATHS'      => default_header_search_paths,
+          'LIBRARY_SEARCH_PATHS'     => inherited_flag,
           # CocoaPods global keys
           'PODS_ROOT'                         => @target_definition.relative_pods_root,
           'PODS_BUILD_HEADERS_SEARCH_PATHS'   => quoted(sandbox.build_headers.search_paths).join(" "),
@@ -166,8 +168,19 @@ module Pod
         strings.map { |s| "\"#{s}\"" }
       end
 
+      def inherited_flag
+        '"$(inherited)"'
+      end
+
+      def default_header_search_paths
+        flags = %w(#{inherited_flag})
+        flags << '${PODS_HEADERS_SEARCH_PATHS}'
+        flags.join(" ")
+      end
+
       def default_ld_flags
         flags = %w{-ObjC}
+        flags << inherited_flag
         flags << '-fobjc-arc' if @podfile.set_arc_compatibility_flag? && self.requires_arc
         flags.join(" ")
       end
